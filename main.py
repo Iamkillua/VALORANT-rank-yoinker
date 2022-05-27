@@ -2,8 +2,7 @@ import traceback
 import requests
 import urllib3
 import os
-import base64
-import json
+import sys
 import time
 from prettytable import PrettyTable
 from alive_progress import alive_bar
@@ -32,13 +31,12 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 os.system('cls')
 os.system(f"title VALORANT rank yoinker v{version}")
 
-
 server = ""
 
 
 def program_exit(status: int):  # so we don't need to import the entire sys module
     log(f"exited program with error code {status}")
-    raise SystemExit(status)
+    raise sys.exit(status)
 
 
 try:
@@ -108,7 +106,7 @@ try:
                 server = GAMEPODS[coregame_stats["GamePodID"]]
                 presences.wait_for_presence(namesClass.get_players_puuid(Players))
                 names = namesClass.get_names_from_puuids(Players)
-                loadouts = loadoutsClass.get_match_loadouts(coregame.get_coregame_match_id(), Players, "vandal", valoApiSkins, names, state="game")
+                loadouts = loadoutsClass.get_match_loadouts(coregame.get_coregame_match_id(), Players, cfg.weapon, valoApiSkins, names, state="game")
                 with alive_bar(total=len(Players), title='Fetching Players', bar='classic2') as bar:
                     presence = presences.get_presence()
                     partyOBJ = menu.get_party_json(namesClass.get_players_puuid(Players), presence)
@@ -197,7 +195,7 @@ try:
                 Players = pregame_stats["AllyTeam"]["Players"]
                 presences.wait_for_presence(namesClass.get_players_puuid(Players))
                 names = namesClass.get_names_from_puuids(Players)
-                loadouts = loadoutsClass.get_match_loadouts(pregame.get_pregame_match_id(), pregame_stats, "vandal", valoApiSkins, names,
+                loadouts = loadoutsClass.get_match_loadouts(pregame.get_pregame_match_id(), pregame_stats, cfg.weapon, valoApiSkins, names,
                                               state="pregame")
                 with alive_bar(total=len(Players), title='Fetching Players', bar='classic2') as bar:
                     presence = presences.get_presence()
@@ -340,15 +338,17 @@ try:
                         # table.add_rows([])
                         bar()
             if (title := game_state_dict.get(game_state)) is None:
-                program_exit(1)
+                # program_exit(1)
+                time.sleep(9)
             if server != "":
                 table.title = f"Valorant status: {title} - {server}"
             else:
                 table.title = f"Valorant status: {title}"
             server = ""
             table.field_names = ["Party", "Agent", "Name", "Skin", "Rank", "RR", "Peak Rank", "pos.", "Level"]
-            print(table)
-            print(f"VALORANT rank yoinker v{version}")
+            if title is not None:
+                print(table)
+                print(f"VALORANT rank yoinker v{version}")
         if cfg.cooldown == 0:
             input("Press enter to fetch again...")
         else:
@@ -357,6 +357,5 @@ except:
     print(color(
         "The program has encountered an error. If the problem persists, please reach support"
         f" with the logs found in {os.getcwd()}\logs", fore=(255, 0, 0)))
-    traceback.print_exc()
     input("press enter to exit...\n")
     os._exit(1)
